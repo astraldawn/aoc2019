@@ -27,7 +27,6 @@ opcode_argmode_map = {
     7: [0, 0, 1],
     8: [0, 0, 1],
 }
-
 opcode_increment_map = {
     opcode: args + 1
     for opcode, args in opcode_args_map.items()
@@ -35,13 +34,13 @@ opcode_increment_map = {
 
 
 class IntCodeComputer(object):
-    def __init__(self,
-                 computer_id,
-                 input_program,
-                 input_computer=None,
-                 output_computer=None,
-                 is_initial=False,
-                 initial_input=0):
+    def __init__(
+        self,
+        computer_id,
+        input_program,
+        input_computer=None,
+        output_computer=None,
+    ):
         # Inputs
         self.computer_id = computer_id
         self.input_computer = input_computer
