@@ -18,14 +18,14 @@ opcode_args_map = {
     8: 3,
 }
 opcode_argmode_map = {
-    1: '001',
-    2: '001',
-    3: '1',
-    4: '0',
-    5: '00',
-    6: '00',
-    7: '001',
-    8: '001'
+    1: [0, 0, 1],
+    2: [0, 0, 1],
+    3: [1],
+    4: [0],
+    5: [0, 0],
+    6: [0, 0],
+    7: [0, 0, 1],
+    8: [0, 0, 1],
 }
 
 opcode_increment_map = {
@@ -96,9 +96,8 @@ class IntCodeComputer(object):
             self.program[p1] = inp
         if opcode == 4:
             p1 = retrieved_args
-            # Push to next computer
             self.last_output = p1
-            self.output_computer.add_input(p1)
+            self.output_computer.add_input(p1)  # Push to next computer
         if opcode == 5:  # JUMP IF NOT ZERO
             p1, p2 = retrieved_args
             if p1 != 0:
@@ -122,26 +121,24 @@ class IntCodeComputer(object):
             cur_opcode = '0' + cur_opcode
         p3, p2, p1 = cur_opcode[0:3]
         actual_opcode = int(cur_opcode[3:])
-        args_mode = ''.join([p1, p2, '1'])
-        return self.handle_opcode(actual_opcode, args_mode_list=args_mode)
+        args_mode_list = [p1, p2, 1]
+        return actual_opcode, args_mode_list
 
     def run(self):
         while True:
-            cur_opcode = self.program[self.ins_pointer]
+            cur_opcode, args_mode_list = self.program[self.ins_pointer], None
             if cur_opcode == 99:
                 self.has_halt = True
                 break
 
-            if len(str(cur_opcode)) == 1:
-                if cur_opcode == 3 and not self.input_queue:
-                    break
+            if len(str(cur_opcode)) > 1:
+                cur_opcode, args_mode_list = self.handle_complex_opcode(
+                    cur_opcode)
 
-                self.ins_pointer = self.handle_opcode(cur_opcode)
-            else:
-                if int(str(cur_opcode)[-2:]) == 3 and not self.input_queue:
-                    break
+            if cur_opcode == 3 and not self.input_queue:
+                break
 
-                self.ins_pointer = self.handle_complex_opcode(cur_opcode)
+            self.ins_pointer = self.handle_opcode(cur_opcode, args_mode_list)
 
 
 def run_intcode_with_phases(phase_list, input_program, initial_input=0):
