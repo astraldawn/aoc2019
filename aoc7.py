@@ -1,3 +1,4 @@
+from collections import deque
 from itertools import permutations
 
 program_a = "3, 15, 3, 16, 1002, 16, 10, 16, 1, 16, 15, 15, 4, 15, 99, 0, 0"
@@ -22,32 +23,29 @@ class IntCodeComputer(object):
     def __init__(self,
                  computer_id,
                  input_program,
-                 phase,
                  input_computer=None,
                  output_computer=None,
                  is_initial=False,
                  initial_input=0):
         # Inputs
         self.computer_id = computer_id
-        self.phase = phase
         self.input_computer = input_computer
-        self.output_computer = None
-        self.is_initial = is_initial
-        self.initial_input = initial_input
+        self.output_computer = output_computer
+        self.input_queue = deque()
 
         # Program
         self.program = [int(p) for p in input_program.split(",")][:]
 
         # State
+        self.last_output = None
         self.ins_pointer = 0
-        self.input_pointer = 0
-        self.output = None
-        self.is_running = False
         self.has_halt = False
-        self.has_taken_input = False
 
     def __repr__(self):
-        return f"{self.computer_id} {self.output} {self.has_halt}"
+        return f"{self.computer_id} {self.last_output} {self.has_halt}"
+
+    def add_input(self, inp):
+        self.input_queue.append(inp)
 
     def map_args(self, args_list):
         res = []
@@ -93,18 +91,7 @@ class IntCodeComputer(object):
 
             p1 = self.map_args([(p1, arg_mode['p1'])])
 
-            inp = 0
-            if self.input_pointer == 0:
-                inp = self.phase
-                self.input_pointer += 1
-            else:
-                self.has_taken_input = True
-                if self.is_initial:
-                    inp = self.initial_input
-                    self.is_initial = False
-                else:
-                    inp = self.input_computer.output
-
+            inp = self.input_queue.popleft()
             self.program[p1] = inp
         if opcode == 4:
             # Halt after throwing output
@@ -114,7 +101,11 @@ class IntCodeComputer(object):
                 arg_mode = {'p1': 0}
 
             p1 = self.map_args([(p1, arg_mode['p1'])])
-            self.output = p1
+
+            # Push to next computer
+            self.last_output = p1
+            self.output_computer.add_input(p1)
+
         if opcode == 5:  # JUMP IF NOT ZERO
             p1, p2 = self.program[self.ins_pointer + 1:self.ins_pointer + 3]
 
@@ -173,27 +164,21 @@ class IntCodeComputer(object):
         }
         return self.handle_opcode(actual_opcode, arg_mode=arg_mode)
 
-    def run_program(self):
-        while self.is_running:
-            # print(f"{self.computer_id} {self.ins_pointer}")
+    def run(self):
+        while True:
             cur_opcode = self.program[self.ins_pointer]
             if cur_opcode == 99:
-                self.is_running = False
                 self.has_halt = True
-                continue
+                break
 
             if len(str(cur_opcode)) == 1:
-                if cur_opcode == 3 and self.has_taken_input:
-                    self.is_running = False
-                    self.has_taken_input = False
-                    continue
+                if cur_opcode == 3 and not self.input_queue:
+                    break
 
                 self.ins_pointer = self.handle_opcode(cur_opcode)
             else:
-                if int(str(cur_opcode)[-2:]) == 3 and self.has_taken_input:
-                    self.is_running = False
-                    self.has_taken_input = False
-                    continue
+                if int(str(cur_opcode)[-2:]) == 3 and not self.input_queue:
+                    break
 
                 self.ins_pointer = self.handle_complex_opcode(cur_opcode)
 
@@ -204,56 +189,50 @@ def run_intcode_with_phases(phase_combination, input_program, initial_input=0):
     for p in permutations(phase_combination):
         computers = []
         for computer_id, phase in enumerate(p):
-            if computer_id == 0:
-                computers.append(
-                    IntCodeComputer(computer_id=computer_id,
-                                    input_program=input_program,
-                                    phase=phase,
-                                    is_initial=True,
-                                    initial_input=initial_input))
-            else:
-                computers.append(
-                    IntCodeComputer(
-                        computer_id=computer_id,
-                        input_program=input_program,
-                        phase=phase,
-                    ))
+            cur_computer = IntCodeComputer(
+                computer_id=computer_id,
+                input_program=input_program,
+            )
+            cur_computer.add_input(phase)
+            computers.append(cur_computer)
 
         for i in range(0, 5):
             computers[i].output_computer = computers[(i + 1) %
                                                      len(phase_combination)]
-
-        for i in range(0, 5):
             computers[i].input_computer = computers[(i - 1) %
                                                     len(phase_combination)]
 
+        computers[0].add_input(initial_input)
         while True:
             computer_has_run = False
             for computer in computers:
                 if not computer.has_halt:
-                    computer.is_running = True
                     computer_has_run = True
-                    computer.run_program()
+                    computer.run()
 
             if not computer_has_run:
                 break
 
-        max_output = max(max_output, computers[-1].output)
+        max_output = max(max_output, computers[-1].last_output)
 
     return max_output
 
 
 def test_program():
-    test_arr = [(
-        ([5, 6, 7, 8, 9], program_c),
-        139629729,
-    ), (
-        ([5, 6, 7, 8, 9], program_d),
-        18216,
-    ), (
-        ([5, 6, 7, 8, 9], program_main),
-        1047153,
-    )]
+    test_arr = [
+        (
+            ([5, 6, 7, 8, 9], program_c),
+            139629729,
+        ),
+        (
+            ([5, 6, 7, 8, 9], program_d),
+            18216,
+        ),
+        (
+            ([5, 6, 7, 8, 9], program_main),
+            1047153,
+        ),
+    ]
 
     for inp, expected in test_arr:
         actual = run_intcode_with_phases(*inp)
