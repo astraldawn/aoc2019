@@ -7,15 +7,30 @@ program_c = "3, 26, 1001,26,-4,26,3, 27, 1002, 27, 2, 27, 1, 27, 26, 27, 4, 27, 
 program_d = "3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54, -5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"
 program_main = "3,8,1001,8,10,8,105,1,0,0,21,34,47,72,81,94,175,256,337,418,99999,3,9,102,3,9,9,1001,9,3,9,4,9,99,3,9,101,4,9,9,1002,9,5,9,4,9,99,3,9,1001,9,5,9,1002,9,5,9,1001,9,2,9,1002,9,5,9,101,5,9,9,4,9,99,3,9,102,2,9,9,4,9,99,3,9,1001,9,4,9,102,4,9,9,4,9,99,3,9,102,2,9,9,4,9,3,9,101,2,9,9,4,9,3,9,1002,9,2,9,4,9,3,9,102,2,9,9,4,9,3,9,1001,9,2,9,4,9,3,9,101,2,9,9,4,9,3,9,101,2,9,9,4,9,3,9,102,2,9,9,4,9,3,9,101,2,9,9,4,9,3,9,1001,9,1,9,4,9,99,3,9,102,2,9,9,4,9,3,9,1001,9,2,9,4,9,3,9,101,1,9,9,4,9,3,9,1001,9,2,9,4,9,3,9,102,2,9,9,4,9,3,9,101,2,9,9,4,9,3,9,1001,9,1,9,4,9,3,9,1001,9,2,9,4,9,3,9,1001,9,2,9,4,9,3,9,1002,9,2,9,4,9,99,3,9,101,2,9,9,4,9,3,9,101,2,9,9,4,9,3,9,101,2,9,9,4,9,3,9,1001,9,1,9,4,9,3,9,1002,9,2,9,4,9,3,9,101,1,9,9,4,9,3,9,102,2,9,9,4,9,3,9,101,1,9,9,4,9,3,9,1001,9,2,9,4,9,3,9,102,2,9,9,4,9,99,3,9,1001,9,1,9,4,9,3,9,102,2,9,9,4,9,3,9,101,2,9,9,4,9,3,9,102,2,9,9,4,9,3,9,101,1,9,9,4,9,3,9,102,2,9,9,4,9,3,9,1001,9,2,9,4,9,3,9,101,2,9,9,4,9,3,9,1002,9,2,9,4,9,3,9,101,2,9,9,4,9,99,3,9,102,2,9,9,4,9,3,9,1001,9,2,9,4,9,3,9,1002,9,2,9,4,9,3,9,101,2,9,9,4,9,3,9,101,2,9,9,4,9,3,9,1002,9,2,9,4,9,3,9,1001,9,1,9,4,9,3,9,101,2,9,9,4,9,3,9,1001,9,1,9,4,9,3,9,1002,9,2,9,4,9,99"
 
-opcode_to_increment = {
-    1: 4,
-    2: 4,
-    3: 2,
-    4: 2,
-    5: 3,
-    6: 3,
-    7: 4,
-    8: 4,
+opcode_args_map = {
+    1: 3,
+    2: 3,
+    3: 1,
+    4: 1,
+    5: 2,
+    6: 2,
+    7: 3,
+    8: 3,
+}
+opcode_argmode_map = {
+    1: '001',
+    2: '001',
+    3: '1',
+    4: '0',
+    5: '00',
+    6: '00',
+    7: '001',
+    8: '001'
+}
+
+opcode_increment_map = {
+    opcode: args + 1
+    for opcode, args in opcode_args_map.items()
 }
 
 
@@ -47,109 +62,59 @@ class IntCodeComputer(object):
     def add_input(self, inp):
         self.input_queue.append(inp)
 
-    def map_args(self, args_list):
+    def get_args_with_mode(self, opcode_args_list, args_mode_list):
         res = []
-        for arg, mode in args_list:
+        for arg, mode in zip(opcode_args_list, args_mode_list):
+            mode = int(mode)
             if mode == 0:
                 res.append(self.program[arg])
             if mode == 1:
                 res.append(arg)
 
-        if len(res) == 1:
-            return res[0]
+        return res if len(res) > 1 else res[0]
 
-        return res
+    def handle_opcode(self, opcode, args_mode_list=None):
+        opcode_args_list = self.program[self.ins_pointer + 1:self.ins_pointer +
+                                        opcode_increment_map[opcode]]
+        if args_mode_list is None:
+            args_mode_list = opcode_argmode_map[opcode]
 
-    def handle_opcode(self, opcode, arg_mode=None):
+        retrieved_args = self.get_args_with_mode(
+            opcode_args_list,
+            args_mode_list,
+        )
+
         if opcode == 1:
-            p1, p2, p3 = self.program[self.ins_pointer + 1:self.ins_pointer +
-                                      4]
-
-            if arg_mode == None:
-                arg_mode = {'p1': 0, 'p2': 0, 'p3': 1}
-
-            p1, p2, p3 = self.map_args([(p1, arg_mode['p1']),
-                                        (p2, arg_mode['p2']),
-                                        (p3, arg_mode['p3'])])
+            p1, p2, p3 = retrieved_args
             self.program[p3] = p1 + p2
         if opcode == 2:
-            p1, p2, p3 = self.program[self.ins_pointer + 1:self.ins_pointer +
-                                      4]
-
-            if arg_mode == None:
-                arg_mode = {'p1': 0, 'p2': 0, 'p3': 1}
-
-            p1, p2, p3 = self.map_args([(p1, arg_mode['p1']),
-                                        (p2, arg_mode['p2']),
-                                        (p3, arg_mode['p3'])])
+            p1, p2, p3 = retrieved_args
             self.program[p3] = p1 * p2
         if opcode == 3:
-            p1 = self.program[self.ins_pointer + 1]
-
-            if arg_mode == None:
-                arg_mode = {'p1': 1}
-
-            p1 = self.map_args([(p1, arg_mode['p1'])])
-
+            p1 = retrieved_args
             inp = self.input_queue.popleft()
             self.program[p1] = inp
         if opcode == 4:
-            # Halt after throwing output
-            p1 = self.program[self.ins_pointer + 1]
-
-            if arg_mode == None:
-                arg_mode = {'p1': 0}
-
-            p1 = self.map_args([(p1, arg_mode['p1'])])
-
+            p1 = retrieved_args
             # Push to next computer
             self.last_output = p1
             self.output_computer.add_input(p1)
-
         if opcode == 5:  # JUMP IF NOT ZERO
-            p1, p2 = self.program[self.ins_pointer + 1:self.ins_pointer + 3]
-
-            if arg_mode == None:
-                arg_mode = {'p1': 0, 'p2': 0}
-
-            p1, p2 = self.map_args([(p1, arg_mode['p1']),
-                                    (p2, arg_mode['p2'])])
+            p1, p2 = retrieved_args
             if p1 != 0:
                 return p2
         if opcode == 6:  # JUMP IF 0
-            p1, p2 = self.program[self.ins_pointer + 1:self.ins_pointer + 3]
-
-            if arg_mode == None:
-                arg_mode = {'p1': 0, 'p2': 0}
-
-            p1, p2 = self.map_args([(p1, arg_mode['p1']),
-                                    (p2, arg_mode['p2'])])
+            p1, p2 = retrieved_args
             if p1 == 0:
                 return p2
         if opcode == 7:  # LESS THAN
-            p1, p2, p3 = self.program[self.ins_pointer + 1:self.ins_pointer +
-                                      4]
-
-            if arg_mode == None:
-                arg_mode = {'p1': 0, 'p2': 0, 'p3': 1}
-
-            p1, p2, p3 = self.map_args([(p1, arg_mode['p1']),
-                                        (p2, arg_mode['p2']),
-                                        (p3, arg_mode['p3'])])
+            p1, p2, p3 = retrieved_args
             self.program[p3] = 1 if p1 < p2 else 0
         if opcode == 8:  # EQUAL
-            p1, p2, p3 = self.program[self.ins_pointer + 1:self.ins_pointer +
-                                      4]
-
-            if arg_mode == None:
-                arg_mode = {'p1': 0, 'p2': 0, 'p3': 1}
-
-            p1, p2, p3 = self.map_args([(p1, arg_mode['p1']),
-                                        (p2, arg_mode['p2']),
-                                        (p3, arg_mode['p3'])])
+            p1, p2, p3 = retrieved_args
             self.program[p3] = 1 if p1 == p2 else 0
 
-        return self.ins_pointer + opcode_to_increment[opcode]
+        return self.ins_pointer + opcode_increment_map[opcode]
 
     def handle_complex_opcode(self, cur_opcode):
         cur_opcode = str(cur_opcode)
@@ -157,12 +122,8 @@ class IntCodeComputer(object):
             cur_opcode = '0' + cur_opcode
         p3, p2, p1 = cur_opcode[0:3]
         actual_opcode = int(cur_opcode[3:])
-        arg_mode = {
-            'p1': int(p1),
-            'p2': int(p2),
-            'p3': 1,  # This always seems to be 1
-        }
-        return self.handle_opcode(actual_opcode, arg_mode=arg_mode)
+        args_mode = ''.join([p1, p2, '1'])
+        return self.handle_opcode(actual_opcode, args_mode_list=args_mode)
 
     def run(self):
         while True:
@@ -183,12 +144,12 @@ class IntCodeComputer(object):
                 self.ins_pointer = self.handle_complex_opcode(cur_opcode)
 
 
-def run_intcode_with_phases(phase_combination, input_program, initial_input=0):
+def run_intcode_with_phases(phase_list, input_program, initial_input=0):
     max_output = 0
 
-    for p in permutations(phase_combination):
+    for phase_perm in permutations(phase_list):
         computers = []
-        for computer_id, phase in enumerate(p):
+        for computer_id, phase in enumerate(phase_perm):
             cur_computer = IntCodeComputer(
                 computer_id=computer_id,
                 input_program=input_program,
@@ -197,10 +158,8 @@ def run_intcode_with_phases(phase_combination, input_program, initial_input=0):
             computers.append(cur_computer)
 
         for i in range(0, 5):
-            computers[i].output_computer = computers[(i + 1) %
-                                                     len(phase_combination)]
-            computers[i].input_computer = computers[(i - 1) %
-                                                    len(phase_combination)]
+            computers[i].output_computer = computers[(i + 1) % len(phase_list)]
+            computers[i].input_computer = computers[(i - 1) % len(phase_list)]
 
         computers[0].add_input(initial_input)
         while True:
