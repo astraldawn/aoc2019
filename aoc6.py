@@ -20,6 +20,4 @@ with open("aoc6.in", "r") as f:
                 weight[nxt] = weight[cur] + 1
                 queue.append(nxt)
 
-
     print(weight['SAN'] - 2)
-

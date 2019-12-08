@@ -26,35 +26,34 @@ def map_args(program, args_list):
 
     return res
 
+
 def handle_opcode(ins_pointer, opcode, program, arg_mode=None):
     if opcode == 1:
         p1, p2, p3 = program[ins_pointer + 1:ins_pointer + 4]
 
-        if arg_mode == None:
+        if arg_mode is None:
             arg_mode = {'p1': 0, 'p2': 0, 'p3': 1}
 
-        p1, p2, p3 = map_args(
-            program,
-            [(p1, arg_mode['p1']), (p2, arg_mode['p2']), (p3, arg_mode['p3'])]
-        )
+        p1, p2, p3 = map_args(program, [(p1, arg_mode['p1']),
+                                        (p2, arg_mode['p2']),
+                                        (p3, arg_mode['p3'])])
         program[p3] = p1 + p2
         return ins_pointer + 4
     if opcode == 2:
         p1, p2, p3 = program[ins_pointer + 1:ins_pointer + 4]
 
-        if arg_mode == None:
+        if arg_mode is None:
             arg_mode = {'p1': 0, 'p2': 0, 'p3': 1}
 
-        p1, p2, p3 = map_args(
-            program,
-            [(p1, arg_mode['p1']), (p2, arg_mode['p2']), (p3, arg_mode['p3'])]
-        )
+        p1, p2, p3 = map_args(program, [(p1, arg_mode['p1']),
+                                        (p2, arg_mode['p2']),
+                                        (p3, arg_mode['p3'])])
         program[p3] = p1 * p2
         return ins_pointer + 4
     if opcode == 3:
         p1 = program[ins_pointer + 1]
 
-        if arg_mode == None:
+        if arg_mode is None:
             arg_mode = {'p1': 1}
 
         p1 = map_args(program, [(p1, arg_mode['p1'])])
@@ -64,64 +63,56 @@ def handle_opcode(ins_pointer, opcode, program, arg_mode=None):
     if opcode == 4:
         p1 = program[ins_pointer + 1]
 
-        if arg_mode == None:
+        if arg_mode is None:
             arg_mode = {'p1': 0}
 
         p1 = map_args(program, [(p1, arg_mode['p1'])])
         print(f"PROGRAM OUT: {p1}")
         return ins_pointer + 2
-    if opcode == 5: # JUMP IF NOT ZERO
-        p1, p2 = program[ins_pointer + 1: ins_pointer + 3]
+    if opcode == 5:  # JUMP IF NOT ZERO
+        p1, p2 = program[ins_pointer + 1:ins_pointer + 3]
 
-        if arg_mode == None:
+        if arg_mode is None:
             arg_mode = {'p1': 0, 'p2': 0}
 
-        p1, p2 = map_args(
-            program,
-            [(p1, arg_mode['p1']), (p2, arg_mode['p2'])]
-        )
+        p1, p2 = map_args(program, [(p1, arg_mode['p1']),
+                                    (p2, arg_mode['p2'])])
         if p1 != 0:
             return p2
         return ins_pointer + 3
     if opcode == 6:  # JUMP IF 0
-        p1, p2 = program[ins_pointer + 1: ins_pointer + 3]
+        p1, p2 = program[ins_pointer + 1:ins_pointer + 3]
 
-        if arg_mode == None:
+        if arg_mode is None:
             arg_mode = {'p1': 0, 'p2': 0}
 
-        p1, p2 = map_args(
-            program,
-            [(p1, arg_mode['p1']), (p2, arg_mode['p2'])]
-        )
+        p1, p2 = map_args(program, [(p1, arg_mode['p1']),
+                                    (p2, arg_mode['p2'])])
         if p1 == 0:
             return p2
         return ins_pointer + 3
-    if opcode == 7: # LESS THAN
+    if opcode == 7:  # LESS THAN
         p1, p2, p3 = program[ins_pointer + 1:ins_pointer + 4]
 
-        if arg_mode == None:
+        if arg_mode is None:
             arg_mode = {'p1': 0, 'p2': 0, 'p3': 1}
 
-        p1, p2, p3 = map_args(
-            program,
-            [(p1, arg_mode['p1']), (p2, arg_mode['p2']), (p3, arg_mode['p3'])]
-        )
+        p1, p2, p3 = map_args(program, [(p1, arg_mode['p1']),
+                                        (p2, arg_mode['p2']),
+                                        (p3, arg_mode['p3'])])
         program[p3] = 1 if p1 < p2 else 0
         return ins_pointer + 4
-    if opcode == 8: # EQUAL
+    if opcode == 8:  # EQUAL
         p1, p2, p3 = program[ins_pointer + 1:ins_pointer + 4]
 
-        if arg_mode == None:
+        if arg_mode is None:
             arg_mode = {'p1': 0, 'p2': 0, 'p3': 1}
 
-        p1, p2, p3 = map_args(
-            program,
-            [(p1, arg_mode['p1']), (p2, arg_mode['p2']), (p3, arg_mode['p3'])]
-        )
+        p1, p2, p3 = map_args(program, [(p1, arg_mode['p1']),
+                                        (p2, arg_mode['p2']),
+                                        (p3, arg_mode['p3'])])
         program[p3] = 1 if p1 == p2 else 0
         return ins_pointer + 4
-
-
 
 
 def handle_complex_opcode(ins_pointer, cur_opcode, program):
@@ -133,9 +124,12 @@ def handle_complex_opcode(ins_pointer, cur_opcode, program):
     arg_mode = {
         'p1': int(p1),
         'p2': int(p2),
-        'p3': 1, # This always seems to be 1
+        'p3': 1,  # This always seems to be 1
     }
-    return handle_opcode(ins_pointer, actual_opcode, program, arg_mode=arg_mode)
+    return handle_opcode(ins_pointer,
+                         actual_opcode,
+                         program,
+                         arg_mode=arg_mode)
 
 
 def run_program(program_input):
@@ -153,6 +147,8 @@ def run_program(program_input):
         if len(str(cur_opcode)) == 1:
             ins_pointer = handle_opcode(ins_pointer, cur_opcode, program)
         else:
-            ins_pointer = handle_complex_opcode(ins_pointer, cur_opcode, program)
+            ins_pointer = handle_complex_opcode(ins_pointer, cur_opcode,
+                                                program)
+
 
 run_program(program_input)
