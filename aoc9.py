@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, defaultdict
 from itertools import permutations
 
 program_day5_1 = "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"
@@ -65,8 +65,10 @@ class IntCodeComputer(object):
         self.output_queue = deque()
 
         # Program
-        self.program = [int(p) for p in input_program.split(",")][:]
-        self.program.extend([0 for i in range(1000000)])
+        self.program = defaultdict(int)
+        tmp_program = [int(p) for p in input_program.split(",")][:]
+        for p, v in enumerate(tmp_program):
+            self.program[p] = v
 
         # State
         self.last_output = None
@@ -97,8 +99,11 @@ class IntCodeComputer(object):
         return res if len(res) > 1 else res[0]
 
     def handle_opcode(self, opcode, args_mode_list=None):
-        opcode_args_list = self.program[self.ins_pointer + 1:self.ins_pointer +
-                                        opcode_increment_map[opcode]]
+        opcode_args_list = [
+            self.program[self.ins_pointer + i]
+            for i in range(1, opcode_increment_map[opcode])
+        ]
+
         if args_mode_list is None:
             args_mode_list = opcode_argmode_map[opcode]
 
