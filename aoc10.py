@@ -1,16 +1,18 @@
 import numpy as np
 import math
 from tqdm import tqdm
-from collections import deque, defaultdict
-from itertools import permutations, product
+from collections import defaultdict
+
 
 def get_dist(p1, p2):
-     dist = math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
-     return dist
+    dist = math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+    return dist
+
 
 def unit_vector(vector):
     """ Returns the unit vector of the vector.  """
     return vector / np.linalg.norm(vector)
+
 
 def angle_between(v1, v2):
     """ Returns the angle in radians between vectors 'v1' and 'v2'::
@@ -26,6 +28,7 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
     return angle
+
 
 # def aoc_day10(input_file):
 #     asteroids = []
@@ -67,23 +70,18 @@ def angle_between(v1, v2):
 
 #     return max_visible
 
+
 def aoc_day10(input_file, station_loc):
     asteroids = []
-    max_x, max_y = 0, 0
     lines = []
     with open(input_file, "r") as f:
         lines = [line.strip() for line in f]
 
     for y, line in enumerate(lines):
-        max_x = len(line.strip())
         for x, p in enumerate(line.strip()):
             if p == '#':
                 asteroids.append((x, y))
 
-    max_y = len(lines)
-
-    max_visible = 0
-    visible_from = defaultdict(int)
     occupied_angles = defaultdict(list)
     for cur_point in tqdm([station_loc]):
 

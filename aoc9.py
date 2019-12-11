@@ -49,6 +49,7 @@ opcode_increment_map = {
     for opcode, args in opcode_args_map.items()
 }
 
+
 class IntCodeComputer(object):
     def __init__(
         self,
@@ -84,7 +85,8 @@ class IntCodeComputer(object):
 
     def get_args_with_mode(self, opcode, opcode_args_list, args_mode_list):
         res = []
-        for op, arg, mode in zip(opcode_arg_op[opcode], opcode_args_list, args_mode_list):
+        for op, arg, mode in zip(opcode_arg_op[opcode], opcode_args_list,
+                                 args_mode_list):
             mode = int(mode)
             if mode == 0:
                 res.append(self.program[arg])
@@ -113,17 +115,17 @@ class IntCodeComputer(object):
             args_mode_list,
         )
 
-        if opcode == 1: # ADD (READ READ WRITE)
+        if opcode == 1:  # ADD (READ READ WRITE)
             p1, p2, p3 = retrieved_args
             self.program[p3] = p1 + p2
-        if opcode == 2: # MUL (READ READ WRITE)
+        if opcode == 2:  # MUL (READ READ WRITE)
             p1, p2, p3 = retrieved_args
             self.program[p3] = p1 * p2
-        if opcode == 3: # INPUT (WRITE)
+        if opcode == 3:  # INPUT (WRITE)
             p1 = retrieved_args
             inp = self.input_queue.popleft()
             self.program[p1] = inp
-        if opcode == 4: # OUTPUT (READ)
+        if opcode == 4:  # OUTPUT (READ)
             p1 = retrieved_args
             self.last_output = p1
             # self.output_computer.add_input(p1)  # Push to next computer
@@ -142,7 +144,7 @@ class IntCodeComputer(object):
         if opcode == 8:  # EQUAL (READ READ WRITE)
             p1, p2, p3 = retrieved_args
             self.program[p3] = 1 if p1 == p2 else 0
-        if opcode == 9: # RELATIVE (READ)
+        if opcode == 9:  # RELATIVE (READ)
             p1 = retrieved_args
             self.relative_base += p1
 
@@ -193,32 +195,25 @@ def aoc_day9(input_program, initial_input=0):
 
 
 def test_program():
-    test_arr = [
-        (
-            (program_a, 0),
-            139629729,
-        ),
-        (
-            (program_b, 0),
-            5,
-        ),
-        (
-            (program_c, 0),
-            5,
-        ),
-        (
-            (program_day5_1, 5),
-            1,
-        ),
-        (
-            (program_main, 1),
-            5,
-        ),
-        (
-            (program_main, 2),
-            5,
-        )
-    ]
+    test_arr = [(
+        (program_a, 0),
+        139629729,
+    ), (
+        (program_b, 0),
+        5,
+    ), (
+        (program_c, 0),
+        5,
+    ), (
+        (program_day5_1, 5),
+        1,
+    ), (
+        (program_main, 1),
+        5,
+    ), (
+        (program_main, 2),
+        5,
+    )]
 
     for inp, expected in test_arr:
         actual = aoc_day9(*inp)
