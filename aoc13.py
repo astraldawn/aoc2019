@@ -2,6 +2,7 @@ from collections import defaultdict, deque
 from itertools import permutations, product
 from intcode import IntCodeComputer
 
+
 def print_grid(grid):
     for i in range(0, 25):
         for j in range(0, 50):
@@ -10,6 +11,7 @@ def print_grid(grid):
             else:
                 print(" ", end="")
         print()
+
 
 # Paint cur, turn and then move
 def aoc_day13(input_file):
