@@ -89,13 +89,16 @@ def aoc_program(input_file):
     visited = defaultdict(lambda: NULL)
     queue = PriorityQueue()
     queue.put((0, (s_x, s_y, 0)))
+    iterations = 0
 
     while queue:
         c_dist, (c_x, c_y, c_level) = queue.get_nowait()
         c_pos = (c_x, c_y)
+        iterations += 1
 
         if c_pos == portal_coords['ZZ'][0] and c_level == 0:
             # Because we want the open tile
+            print(iterations)
             return c_dist - 1
             break
 

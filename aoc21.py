@@ -57,9 +57,9 @@ def aoc_program(input_file):
         "AND D J",
 
         # above AND (E OR H)
-        "AND E T",
-        "OR H T",
-        "AND T J",
+        # "AND E T",
+        # "OR H T",
+        # "AND T J",
 
         # Exec
         "RUN",
